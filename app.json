@@ -1,8 +1,8 @@
 {
-  "name": "ofs-nodejs-express-server",
-  "description": "A node.js express server for OFS",
-  "repository": "https://github.com/Organic-Food-Store/ofs-nodejs-express-server",
-  "logo": "https://organic-food-store.herokuapp.com/node.svg",
-  "keywords": ["node", "express", "static"],
-  "image": "heroku/nodejs"
+    "name": "ofs-nodejs-express-server",
+    "description": "A node.js express server for OFS",
+    "repository": "https://github.com/Organic-Food-Store/ofs-nodejs-express-server",
+    "logo": "https://organic-food-store.herokuapp.com/node.svg",
+    "keywords": ["node", "express", "static"],
+    "image": "heroku/nodejs"
 }

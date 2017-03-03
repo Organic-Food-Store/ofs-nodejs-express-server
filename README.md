@@ -1,4 +1,5 @@
-# node-js-getting-started
+# ofs-nodejs-express-server
+The Independent Node JS Express Server hosted at Heroku
 
 A barebones Node.js app using [Express 4](http://expressjs.com/).
 
