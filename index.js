@@ -51,7 +51,7 @@ ref.once("value", function (snapshot) {
 app.get('/api', function (req, res) {
     ref.once("value", function (snapshot) {
         res.send({
-            "data": snapshot.val()
+            "data is beatiful": snapshot.val()
         });
     });
 });
@@ -66,3 +66,78 @@ app.get('/api/:newVal', function (req, res) {
         });
     });
 });
+
+
+/* Peusdcode
+
+??Create Product Object????
+
+
+
+
+
+
+
+
+function setupRefresh(){
+
+}
+
+var stores = ["San Jose", "Daly City"];
+var catagories = ["dairy", "fruit", "vegatables", "meat", " "]
+var products = []
+function makeProductArray(){
+
+}
+
+
+
+*/ 
+
+// function to update the stock for product
+function updateStock(path,  deduction) {
+   
+    var ref = db.ref(path+ "/quantity");
+    
+    var orignal  = 0
+
+    ref.once("value", function(snapshot) {
+        orignal = snapshot.val();
+        var newAm = parseInt(orignal)-parseInt(deduction);
+
+        db.ref(path).update({
+            quantity: newAm
+        }); 
+        }, function (errorObject) {
+            console.log("Failed to withdraw: " + errorObject.code);
+        });
+
+}
+
+function refreshStock(path, defaultVal) {
+
+    var ref = db.ref(path + "/quantity");
+    ref.on("value", function(snapshot) {
+        if(snapshot.val() == 0){
+            db.ref(path).update({
+            quantity: defaultVal
+            }); 
+        }
+    }, function (errorObject) {
+            console.log("Failed to withdraw: " + errorObject.code);
+        });
+    db.ref(path).update({
+        quantity: defaultVal
+    });
+}
+
+
+var path = "stores/storeId/stock/dairy/butter";
+
+//updateStock(path, 10);
+
+refreshStock(path, 100);
+
+setInterval(function(){updateStock(path, 10);}, 1000);
+
+
