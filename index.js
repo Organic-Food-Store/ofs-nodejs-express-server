@@ -131,6 +131,16 @@ function refreshStock(path, defaultVal) {
     });
 }
 
+var stores = ["storeId", "storeId2"];
+var catagories = ["dairy", "fruit", "vegatables", "meat", " "]
+var products = []
+
+function setupRefresh(){
+    var ref = db.ref("stores");
+    ref.orderByChild().once("child_added", function(snapshot) {
+        console.log(snapshot.key + " was " + snapshot.val().height + " meters tall");
+    });
+}
 
 var path = "stores/storeId/stock/dairy/butter";
 
