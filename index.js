@@ -66,3 +66,13 @@ app.get('/api/:newVal', function (req, res) {
         });
     });
 });
+
+app.get('/api/zipToCords/:zipcode', function (req, res) {
+    console.log(req.params.zipcode);
+    if (req.params.zipcode == "94401")
+        res.send({"lat": 37.576948, "lng": -122.316903});
+    else if(req.params.zipcode == "95125")
+        res.send({ "lat": 37.295056, "lng": -121.89144 });
+    else
+        res.send({"lat": null, "lng": null});
+});
