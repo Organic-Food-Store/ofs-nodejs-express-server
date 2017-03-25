@@ -152,7 +152,7 @@ refreshStock(path, 100);
 setInterval(function(){updateStock(path, 10);}, 1000);
 
 
-=======
+
 app.get('/api/zipToCords/:zipcode', function (req, res) {
     console.log(req.params.zipcode);
     if (req.params.zipcode == "94401")
@@ -162,4 +162,4 @@ app.get('/api/zipToCords/:zipcode', function (req, res) {
     else
         res.send({"lat": null, "lng": null});
 });
->>>>>>> origin/master
+
