@@ -67,7 +67,6 @@ app.get('/api/:newVal', function (req, res) {
     });
 });
 
-<<<<<<< HEAD
 
 /* Peusdcode
 
