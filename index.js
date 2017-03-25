@@ -2,6 +2,9 @@
 var express = require('express');
 var admin = require("firebase-admin");
 var app = express();
+var cors = require('cors');
+
+app.use(cors());
 
 app.set('port', (process.env.PORT || 5000));
 

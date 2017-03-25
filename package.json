@@ -1,33 +1,34 @@
 {
-    "name": "ofs-nodejs-express-server",
-    "version": "1.0.0",
-    "description": "A node.js express server for OFS",
-    "engines": {
-        "node": "5.9.1"
-    },
-    "main": "index.js",
-    "scripts": {
-        "start": "node index.js",
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Organic-Food-Store/ofs-nodejs-express-server.git"
-    },
-    "author": "",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/Organic-Food-Store/ofs-nodejs-express-server/issues"
-    },
-    "homepage": "https://github.com/Organic-Food-Store/ofs-nodejs-express-server#readme",
-    "dependencies": {
-        "ejs": "2.4.1",
-        "express": "^4.15.0",
-        "firebase-admin": "^4.1.2"
-    },
-    "keywords": [
-        "node",
-        "heroku",
-        "express"
-    ]
+  "name": "ofs-nodejs-express-server",
+  "version": "1.0.0",
+  "description": "A node.js express server for OFS",
+  "engines": {
+    "node": "5.9.1"
+  },
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Organic-Food-Store/ofs-nodejs-express-server.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Organic-Food-Store/ofs-nodejs-express-server/issues"
+  },
+  "homepage": "https://github.com/Organic-Food-Store/ofs-nodejs-express-server#readme",
+  "dependencies": {
+    "cors": "^2.8.1",
+    "ejs": "2.4.1",
+    "express": "^4.15.0",
+    "firebase-admin": "^4.1.2"
+  },
+  "keywords": [
+    "node",
+    "heroku",
+    "express"
+  ]
 }
