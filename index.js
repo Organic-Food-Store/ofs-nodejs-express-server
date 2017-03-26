@@ -71,93 +71,75 @@ app.get('/api/:newVal', function (req, res) {
     });
 });
 
-
-
 /* Peusdcode
-
 ??Create Product Object????
 
-
-
-
-
-
-
-
 function setupRefresh(){
-
 }
 
 var stores = ["San Jose", "Daly City"];
 var catagories = ["dairy", "fruit", "vegatables", "meat", " "]
 var products = []
+
 function makeProductArray(){
-
 }
-
-
-
-*/ 
+*/
 
 // function to update the stock for product
-function updateStock(path,  deduction) {
-   
-    var ref = db.ref(path+ "/quantity");
-    
-    var orignal  = 0
-
-    ref.once("value", function(snapshot) {
+function updateStock(path, deduction) {
+    var ref = db.ref(path + "/quantity");
+    var orignal = 0;
+    ref.once("value", function (snapshot) {
         orignal = snapshot.val();
-        var newAm = parseInt(orignal)-parseInt(deduction);
-
+        var newAm = parseInt(orignal) - parseInt(deduction);
         db.ref(path).update({
             quantity: newAm
-        }); 
-        }, function (errorObject) {
-            console.log("Failed to withdraw: " + errorObject.code);
         });
+    }, function (errorObject) {
+        console.log("Failed to withdraw: " + errorObject.code);
+    });
 
 }
 
 function refreshStock(path, defaultVal) {
-
     var ref = db.ref(path + "/quantity");
-    ref.on("value", function(snapshot) {
-        if(snapshot.val() == 0){
+    ref.on("value", function (snapshot) {
+        if (snapshot.val() == 0) {
             db.ref(path).update({
-            quantity: defaultVal
-            }); 
+                quantity: defaultVal
+            });
         }
     }, function (errorObject) {
-            console.log("Failed to withdraw: " + errorObject.code);
-        });
+        console.log("Failed to withdraw: " + errorObject.code);
+    });
     db.ref(path).update({
         quantity: defaultVal
     });
 }
 
 var stores = ["storeId", "storeId2"];
-var catagories = ["dairy", "fruit", "vegatables", "meat", " "]
-var products = []
+var catagories = ["dairy", "fruit", "vegatables", "meat", " "];
+var products = [];
 
-function setupRefresh(){
+function setupRefresh() {
     var ref = db.ref("stores");
-    for(var catagories in stock)
-    ref.orderByChild().once("child_added", function(snapshot) {
-        console.log(snapshot.key + " was " + snapshot.val().height + " meters tall");
-    });
+    for (var catagories in stock)
+        ref.orderByChild().once("child_added", function (snapshot) {
+            console.log(snapshot.key + " was " + snapshot.val().height + " meters tall");
+        });
 }
 
 var path = "stores/storeId/stock/dairy/butter";
 
 //updateStock(path, 10);
-
 //refreshStock(path, 100);
-
 //setInterval(function(){updateStock(path, 10);}, 1000);
 
-function zipToCords(code){
-    return {"lat": zips[code].LAT, "lng":zips[code].LNG};
+function zipToCords(code) {
+    return {
+        "lat": zips[code].LAT,
+        "lng": zips[code].LNG
+    };
 }
 
 //zipToCords("00601")
@@ -165,5 +147,12 @@ function zipToCords(code){
 app.get('/api/zipToCords/:zipcode', function (req, res) {
     console.log(req.params.zipcode);
     res.send(zipToCords(req.params.zipcode));
+});
 
+app.get('/api/userExists/:useruid', function (req, res) {
+    console.log(req.params.useruid);
+    var usersRef = db.ref("users");
+    usersRef.child(req.params.useruid).once('value', function(snapshot) {
+        res.send({"exists": (snapshot.val() !== null)});
+    });
 });
