@@ -156,3 +156,7 @@ app.get('/api/userExists/:useruid', function (req, res) {
         res.send({"exists": (snapshot.val() !== null)});
     });
 });
+
+app.get('/api/closestStore/:zipcode', function (req, res) {
+    res.send({"storeId": 95125});
+});
