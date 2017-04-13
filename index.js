@@ -73,31 +73,7 @@ app.get('/api/:newVal', function (req, res) {
 
 
 
-/* Peusdcode
 
-??Create Product Object????
-
-
-
-
-
-
-
-
-function setupRefresh(){
-
-}
-
-var stores = ["San Jose", "Daly City"];
-var catagories = ["dairy", "fruit", "vegatables", "meat", " "]
-var products = []
-function makeProductArray(){
-
-}
-
-
-
-*/ 
 
 // function to update the stock for product
 function updateStock(path,  deduction) {
@@ -140,13 +116,20 @@ var stores = ["storeId", "storeId2"];
 var catagories = ["dairy", "fruit", "vegatables", "meat", " "]
 var products = []
 
-function setupRefresh(){
+function setUpRefresh(){
     var ref = db.ref("stores");
-    for(var catagories in stock)
-    ref.orderByChild().once("child_added", function(snapshot) {
+    ref.orderByChild().once("value", function(snapshot) {
+        storeRef = db.ref("stores/stock"+snapshot.key);
+        storeRef.orderByChild().once("value", function(data){
+            var path = "stores/"+snapshot.key+"/stock/" + data.key;
+            storeRef.child(data.key).on("value")
+            refreshStock(path, 100);
+        })
         console.log(snapshot.key + " was " + snapshot.val().height + " meters tall");
     });
 }
+
+setUpRefresh();
 
 function writeOrderID(userID){
 //    console.log("entered")
@@ -189,10 +172,6 @@ function emptyCart(userID, nOrderID){
         var cartRef = db.ref("users/" + userID +"/cart/" + storeID);
 
         cartRef.orderByValue().on("value", function(snapshot) {
-
-
-        
-            console.log(snapshot.key);
             snapshot.forEach(function(data){
 //               console.log("entered for each");
 //                console.log("Value of " + data.key + " is " + data.val());
@@ -250,8 +229,8 @@ function checkout(userID){
     finalizeOrder(userID, orderID);
 }
 
-checkout("qWWZEkhFeDclEwG1yFNCSaF0UNG3");
-var path = "stores/storeId/stock/dairy/butter";
+//checkout("qWWZEkhFeDclEwG1yFNCSaF0UNG3");
+//var path = "stores/storeId/stock/dairy/butter";
 
 //updateStock(path, 10);
 
