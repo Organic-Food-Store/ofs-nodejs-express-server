@@ -149,7 +149,7 @@ function setupRefresh(){
 }
 
 function writeOrderID(userID){
-    console.log("entered")
+//    console.log("entered")
     var ordersRef = db.ref("orders");
     var orderID = 0;
     var notIDTaken = true;
@@ -163,7 +163,7 @@ function writeOrderID(userID){
         if(!orderArray.includes(orderID.toString())){
             orderString = orderID.toString()
             
-            ordersRef.child(orderString).set(userID + " woot");
+            ordersRef.child(orderString).set(userID);
             notIDTaken = false;
         }
         else{
@@ -174,13 +174,83 @@ function writeOrderID(userID){
     return orderString;
 }
 
-writeOrderID("testID");
+function emptyCart(userID, nOrderID){
+    var userRef = db.ref("users/" + userID);
+    userRef.child("orders").child(orderID).set({orderID: nOrderID});
+
+    var orderRef = db.ref("users/" + userID + "/orders/"+ nOrderID);
+
+    var storeID;
+    userRef.child("storeId").once("value", function(snapshot) {
+        console.log(snapshot.val());
+        storeID = snapshot.val();
+
+        var totalCost = 0;
+        var cartRef = db.ref("users/" + userID +"/cart/" + storeID);
+
+        cartRef.orderByValue().on("value", function(snapshot) {
+
+
+        
+            console.log(snapshot.key);
+            snapshot.forEach(function(data){
+//               console.log("entered for each");
+//                console.log("Value of " + data.key + " is " + data.val());
+                if(data.val() != 0){
+                    console.log("Entered if statement");
+                    path = "stores/" + storeID + "/stock/" + data.key;
+                    var productRef = db.ref(path);
+
+                    var price = 0;
+                    productRef.child("price").once("value", function(snapshot) {
+                        price = parseFloat(snapshot.val());
+                    });
+                    totalCost = totalCost + price*data.val();
+
+                    updateStock(path, data.val());
+                    orderRef.child("cart").child(data.key).set(data.val())
+                    cartRef.child(data.key).set(0);
+                }
+            });
+                    
+        });
+
+        totalCost = "$" + totalCost.toString();
+        orderRef.child("orderTotal").set(totalCost);
+    });
+//    console.log("storeID " + storeID);
+
+
+    
+}
+
+function finalizeOrder(userID, OrderID){
+    var userRef = db.ref("users/" + userID);
+    var orderRef = db.ref("users/" + userID + "/orders/"+ OrderID);
+
+    orderRef.child("status").set("processing");
+    orderRef.child("timestamp").set(Date.now());
+
+    var storeID = 0;
+    userRef.child("storeID").once("value", function(snapshot) {
+        storeID = snapshot.val();
+    });
+    
+
+
+ //   orderRef.child("")
+
+}
+
+//writeOrderID("testID");
 
 function checkout(userID){
     orderID = writeOrderID(userID);
-
-
+    emptyCart(userID, orderID);
+    finalizeOrder(userID, orderID);
 }
+
+checkout("qWWZEkhFeDclEwG1yFNCSaF0UNG3");
 var path = "stores/storeId/stock/dairy/butter";
 
 //updateStock(path, 10);
