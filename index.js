@@ -118,14 +118,12 @@ var products = []
 
 function setUpRefresh(){
     var ref = db.ref("stores");
-    ref.orderByChild().once("value", function(snapshot) {
+    ref.orderByKey().once("value", function(snapshot) {
         storeRef = db.ref("stores/stock"+snapshot.key);
-        storeRef.orderByChild().once("value", function(data){
+        storeRef.orderByKey().once("value", function(data){
             var path = "stores/"+snapshot.key+"/stock/" + data.key;
-            storeRef.child(data.key).on("value")
             refreshStock(path, 100);
         })
-        console.log(snapshot.key + " was " + snapshot.val().height + " meters tall");
     });
 }
 
