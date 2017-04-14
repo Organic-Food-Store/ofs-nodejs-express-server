@@ -77,9 +77,9 @@ app.get('/api/:newVal', function (req, res) {
 
 // function to update the stock for product
 function updateStock(path,  deduction) {
-   
+
     var ref = db.ref(path+ "/quantity");
-    
+
     var orignal  = 0
 
     ref.once("value", function(snapshot) {
@@ -88,7 +88,7 @@ function updateStock(path,  deduction) {
 
         db.ref(path).update({
             quantity: newAm
-        }); 
+        });
         }, function (errorObject) {
             console.log("Failed to withdraw: " + errorObject.code);
         });
@@ -102,7 +102,7 @@ function refreshStock(path, defaultVal) {
         if(snapshot.val() == 0){
             db.ref(path).update({
             quantity: defaultVal
-            }); 
+            });
         }
     }, function (errorObject) {
             console.log("Failed to withdraw: " + errorObject.code);
@@ -143,7 +143,7 @@ function writeOrderID(userID){
         orderArray =  Object.keys(ordersRef);
         if(!orderArray.includes(orderID.toString())){
             orderString = orderID.toString()
-            
+
             ordersRef.child(orderString).set(userID);
             notIDTaken = false;
         }
@@ -189,7 +189,7 @@ function emptyCart(userID, nOrderID){
                     cartRef.child(data.key).set(0);
                 }
             });
-                    
+
         });
 
         totalCost = "$" + totalCost.toString();
@@ -198,7 +198,7 @@ function emptyCart(userID, nOrderID){
 //    console.log("storeID " + storeID);
 
 
-    
+
 }
 
 function finalizeOrder(userID, OrderID){
@@ -212,7 +212,7 @@ function finalizeOrder(userID, OrderID){
     userRef.child("storeID").once("value", function(snapshot) {
         storeID = snapshot.val();
     });
-    
+
 
 
  //   orderRef.child("")
@@ -274,4 +274,16 @@ app.get('/api/zipToCords/:zipcode', function (req, res) {
     console.log(req.params.zipcode);
     res.send(zipToCords(req.params.zipcode));
 
+});
+
+app.get('/api/userExists/:useruid', function (req, res) {
+    console.log(req.params.useruid);
+    var usersRef = db.ref("users");
+    usersRef.child(req.params.useruid).once('value', function(snapshot) {
+        res.send({"exists": (snapshot.val() !== null)});
+    });
+});
+
+app.get('/api/closestStore/:zipcode', function (req, res) {
+    res.send({"storeId": 95125});
 });
