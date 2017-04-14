@@ -54,94 +54,108 @@ ref.once("value", function (snapshot) {
 
 app.get('/api', function (req, res) {
     ref.once("value", function (snapshot) {
-        res.send({
-            "data is beatiful": snapshot.val()
-        });
+        res.send({"data": snapshot.val()});
     });
 });
 
 app.get('/api/:newVal', function (req, res) {
     console.log(req.params.newVal);
+    var ref = db.ref("data");
     ref.set(req.params.newVal);
-    //ref.update({"data": req.params.newVal});
+    ref.update({"data": req.params.newVal});
     ref.once("value", function (snapshot) {
-        res.send({
-            "data": snapshot.val()
-        });
+        res.send({"data": snapshot.val()});
     });
 });
 
+app.get('/api/zipToCords/:zipcode', function (req, res) {
+    console.log(req.params.zipcode);
+    res.send(zipToCords(req.params.zipcode));
+});
 
+app.get('/api/userExists/:useruid', function (req, res) {
+    console.log(req.params.useruid);
+    var usersRef = db.ref("users");
+    usersRef.child(req.params.useruid).once('value', function(snapshot) {
+        res.send({"exists": (snapshot.val() !== null)});
+    });
+});
 
+app.get('/api/closestStore/:zipcode', function (req, res) {
+    res.send({"storeId": 95125});
+});
 
+app.get('/api/checkout/:useruid', function (req, res) {
+    console.log(req.params.useruid);
+  //  var usersRef = db.ref("users");
+    // usersRef.child(req.params.useruid).once('value', function(snapshot) {
+        res.send({"orderId": checkout(req.params.useruid)});
+ //   });
+});
 
 // function to update the stock for product
 function updateStock(path,  deduction) {
-
+    console.log(path);
     var ref = db.ref(path+ "/quantity");
-
     var orignal  = 0
-
     ref.once("value", function(snapshot) {
         orignal = snapshot.val();
         var newAm = parseInt(orignal)-parseInt(deduction);
-
         db.ref(path).update({
             quantity: newAm
         });
-        }, function (errorObject) {
-            console.log("Failed to withdraw: " + errorObject.code);
-        });
-
-}
-
-function refreshStock(path, defaultVal) {
-
-    var ref = db.ref(path + "/quantity");
-    ref.on("value", function(snapshot) {
-        if(snapshot.val() == 0){
-            db.ref(path).update({
-            quantity: defaultVal
-            });
-        }
     }, function (errorObject) {
-            console.log("Failed to withdraw: " + errorObject.code);
-        });
-    db.ref(path).update({
-        quantity: defaultVal
+        console.log("Failed to withdraw: " + errorObject.code);
     });
 }
 
-var stores = ["storeId", "storeId2"];
-var catagories = ["dairy", "fruit", "vegatables", "meat", " "]
-var products = []
+function refreshStock(path, defaultVal) {
+    // console.log(path)
+    var ref = db.ref(path + "/quantity");
+    ref.on("value", function(snapshot) {
+        if(snapshot.val() == 0) {
+            db.ref(path).update({
+                quantity: defaultVal
+            });
+        }
+    }, function (errorObject) {
+        console.log("Failed to withdraw: " + errorObject.code);
+    });
+}
 
 function setUpRefresh(){
     var ref = db.ref("stores");
-    ref.orderByKey().once("value", function(snapshot) {
-        storeRef = db.ref("stores/stock"+snapshot.key);
-        storeRef.orderByKey().once("value", function(data){
-            var path = "stores/"+snapshot.key+"/stock/" + data.key;
-            refreshStock(path, 100);
-        })
+    ref.once("value", function(snapshot) {
+        var storeData = snapshot.val();
+        for(var store in storeData)
+            for(var food in storeData[store].stock)
+                refreshStock(("stores/"+store+"/stock/"+food), 100);
     });
 }
 
 setUpRefresh();
+
+function checkout(userID){
+    orderID = writeOrderID(userID);
+    emptyCart(userID, orderID);
+    finalizeOrder(userID, orderID);
+    return orderID;
+}
+
 
 function writeOrderID(userID){
 //    console.log("entered")
     var ordersRef = db.ref("orders");
     var orderID = 0;
     var notIDTaken = true;
+    var orderArray = Object.keys(ordersRef)
 
     while(notIDTaken){
         for(i =0; i < 10; i++){
-            orderID = orderID + (Math.floor((Math.random() * 10) + 1))*Math.pow(10, i);
+            orderID = orderID + (Math.floor((Math.random() * 10) + 1))*Math.pow(10, i); //generates ID out of numbers 1-10, 1o digits
         }
-        console.log("OrderID is " + orderID);
-        orderArray =  Object.keys(ordersRef);
-        if(!orderArray.includes(orderID.toString())){
+        // console.log("OrderID is " + orderID);
+        if(!orderArray.includes(orderID.toString())){ //checks if ID is taken
             orderString = orderID.toString()
 
             ordersRef.child(orderString).set(userID);
@@ -165,6 +179,7 @@ function emptyCart(userID, nOrderID){
     userRef.child("storeId").once("value", function(snapshot) {
         console.log(snapshot.val());
         storeID = snapshot.val();
+        console.log("Store ID " + storeID)
 
         var totalCost = 0;
         var cartRef = db.ref("users/" + userID +"/cart/" + storeID);
@@ -221,11 +236,6 @@ function finalizeOrder(userID, OrderID){
 
 //writeOrderID("testID");
 
-function checkout(userID){
-    orderID = writeOrderID(userID);
-    emptyCart(userID, orderID);
-    finalizeOrder(userID, orderID);
-}
 
 //checkout("qWWZEkhFeDclEwG1yFNCSaF0UNG3");
 //var path = "stores/storeId/stock/dairy/butter";
@@ -240,13 +250,11 @@ function zipToCords(code){
     return {"lat": zips[code].LAT, "lng":zips[code].LNG};
 }
 
-//zipToCords("00601")
-
 function Deg2Rad(deg) {
   return deg * Math.PI / 180;
 }
 
-function distance(lat1, lon1, lat2, lon2){
+function distance(lat1, lon1, lat2, lon2) {
     lat1 = Deg2Rad(lat1);
     lat2 = Deg2Rad(lat2);
     lon1 = Deg2Rad(lon1);
@@ -258,7 +266,7 @@ function distance(lat1, lon1, lat2, lon2){
     return d;
 }
 
-function closestStore(zip){
+function closestStore(zip) {
     var store = 0;
     var mindistance = 0;
     var ref = db.ref("stores");
@@ -267,23 +275,4 @@ function closestStore(zip){
     for(var x in ref){
 
     }
-
 }
-
-app.get('/api/zipToCords/:zipcode', function (req, res) {
-    console.log(req.params.zipcode);
-    res.send(zipToCords(req.params.zipcode));
-
-});
-
-app.get('/api/userExists/:useruid', function (req, res) {
-    console.log(req.params.useruid);
-    var usersRef = db.ref("users");
-    usersRef.child(req.params.useruid).once('value', function(snapshot) {
-        res.send({"exists": (snapshot.val() !== null)});
-    });
-});
-
-app.get('/api/closestStore/:zipcode', function (req, res) {
-    res.send({"storeId": 95125});
-});
