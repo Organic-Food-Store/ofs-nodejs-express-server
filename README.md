@@ -10,7 +10,7 @@ This application supports the [Getting Started with Node on Heroku](https://devc
 Make sure you have [Node.js](http://nodejs.org/) and the [Heroku Toolbelt](https://toolbelt.heroku.com/) installed.
 
 ```sh
-$ git clone https://github.com/heroku/node-js-getting-started
+$ git clone https://github.com/Organic-Food-Store/ofs-nodejs-express-server
 $ cd ofs-nodejs-express-server
 $ npm install
 $ npm start
