@@ -44,235 +44,247 @@ admin.initializeApp({
 });
 
 var db = admin.database();
-var ref = db.ref("data");
-
-ref.once("value", function (snapshot) {
-    console.log(snapshot.val());
-});
 
 // ===================== ROUTING SETUP ===========================
 
 app.get('/api', function (req, res) {
-    ref.once("value", function (snapshot) {
-        res.send({"data": snapshot.val()});
-    });
+    getLastAPICall(res);
 });
 
 app.get('/api/:newVal', function (req, res) {
-    console.log(req.params.newVal);
-    var ref = db.ref("data");
-    ref.set(req.params.newVal);
-    ref.update({"data": req.params.newVal});
-    ref.once("value", function (snapshot) {
-        res.send({"data": snapshot.val()});
+    setLastAPICall(req.params.newVal, function () {
+        getLastAPICall(res)
     });
 });
 
 app.get('/api/zipToCords/:zipcode', function (req, res) {
-    console.log(req.params.zipcode);
-    res.send(zipToCords(req.params.zipcode));
+    setLastAPICall("zipToCords - " + req.params.zipcode);
+    if (zips[zip])
+        res.send({
+            "lat": getZipLat(req.params.zipcode),
+            "lng": getZipLong(req.params.zipcode)
+        });
+    else
+        res.send({
+            "lat": null,
+            "lng": null
+        });
 });
 
 app.get('/api/userExists/:useruid', function (req, res) {
-    console.log(req.params.useruid);
-    var usersRef = db.ref("users");
-    usersRef.child(req.params.useruid).once('value', function(snapshot) {
-        res.send({"exists": (snapshot.val() !== null)});
-    });
+    setLastAPICall("userExists - " + req.params.useruid);
+    checkUserExists(res, req.params.useruid);
 });
 
 app.get('/api/closestStore/:zipcode', function (req, res) {
-    res.send({"storeId": 95125});
+    setLastAPICall("closestStore - " + req.params.zipcode);
+    closestStore(res, req.params.zipcode);
 });
 
 app.get('/api/checkout/:useruid', function (req, res) {
-    console.log(req.params.useruid);
-  //  var usersRef = db.ref("users");
-    // usersRef.child(req.params.useruid).once('value', function(snapshot) {
-        res.send({"orderId": checkout(req.params.useruid)});
- //   });
+    setLastAPICall("checkout - " + req.params.useruid);
+    checkout(res, req.params.useruid);
 });
 
-// function to update the stock for product
-function updateStock(path,  deduction) {
-    console.log(path);
-    var ref = db.ref(path+ "/quantity");
-    var orignal  = 0
-    ref.once("value", function(snapshot) {
-        orignal = snapshot.val();
-        var newAm = parseInt(orignal)-parseInt(deduction);
-        db.ref(path).update({
-            quantity: newAm
+// ========================== CALL FUNCTIONS ==========================
+
+function setLastAPICall(call, cb) {
+    console.log("Last API Call: " + call);
+    db.ref("data").set(call, cb);
+}
+
+function getLastAPICall(res) {
+    db.ref("data").once("value", function (snapshot) {
+        res.send({
+            "Last API Call": snapshot.val()
         });
-    }, function (errorObject) {
-        console.log("Failed to withdraw: " + errorObject.code);
+    });
+}
+
+function checkUserExists(res, id) {
+    db.ref("users").child(id).once('value', function (snapshot) {
+        res.send({
+            "exists": snapshot.val() !== null
+        });
+    });
+}
+
+function closestStore(res, zipcode) {
+    db.ref("stores").once('value', function (snapshot) {
+        var storeZips = Object.keys(snapshot.val());
+        var storeDistances = storeZips.slice();
+        for (zip in storeDistances)
+            storeDistances[zip] = getDistanceFromLatLonInKm(getZipLat(zipcode), getZipLong(zipcode), getZipLat(storeDistances[zip]), getZipLong(storeDistances[zip]));
+        res.send({
+            "storeId": storeZips[storeDistances.reduce((iMin, x, i, arr) => x < arr[iMin] ? i : iMin, 0)]
+        });
+    });
+}
+
+function checkout(res, userId) {
+    writeOrderID(userId, function (orderId) {
+        clearCartFinalizeOrder(userId, orderId, function (rtnOrderId) {
+            if (!rtnOrderId)
+                res.send({
+                    "trackingOrder": null
+                });
+            else
+                db.ref("orders").child(rtnOrderId.toString()).set(userId).then(function () {
+                    doDelivery(userId, rtnOrderId);
+                    res.send({
+                        "trackingOrder": rtnOrderId
+                    });
+                });
+        });
+    });
+}
+
+// ======================== PASSIVE FUNCTIONS =========================
+
+setUpRefresh(50);
+
+function setUpRefresh(defaultVal) {
+    db.ref("stores").once("value", function (snapshot) {
+        for (var store in snapshot.val())
+            for (var food in snapshot.val()[store].stock)
+                refreshStock(("stores/" + store + "/stock/" + food), defaultVal);
     });
 }
 
 function refreshStock(path, defaultVal) {
-    // console.log(path)
-    var ref = db.ref(path + "/quantity");
-    ref.on("value", function(snapshot) {
-        if(snapshot.val() == 0) {
-            db.ref(path).update({
-                quantity: defaultVal
+    db.ref(path + "/quantity").on("value", function (snapshot) {
+        if (snapshot.val() < 1) updateStock(path, -defaultVal);
+    });
+}
+
+function updateStock(path, deduction) { // function to update the stock for product
+    db.ref(path + "/quantity").transaction(function (quanta) {
+        return quanta - deduction;
+    });
+}
+
+function getZipLat(zip) {
+    return zips[zip].LAT;
+}
+
+function getZipLong(zip) {
+    return zips[zip].LNG;
+}
+
+function getUserLat(udata) {
+    return udata.addrlat ? udata.addrlat : udata.ziplat ? udata.ziplat : zips[udata.zipcode].LAT;
+}
+
+function getUserLong(udata) {
+    return udata.addrlng ? udata.addrlng : udata.ziplng ? udata.ziplng : zips[udata.zipcode].LNG;
+}
+
+function getLatIncrement(lat1, lon1, lat2, lon2) {
+    return 0.001;
+}
+
+function getLongIncrement(lat1, lon1, lat2, lon2) {
+    return 0.001;
+}
+
+function getNextLat(latStart, latEnd) {
+    return latStart + latEnd;
+}
+
+function getNextLong(longStart, longEnd) {
+    return longStart + longEnd;
+}
+
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+    var p = 0.017453292519943295; // Math.PI / 180
+    var c = Math.cos;
+    var a = 0.5 - c((lat2 - lat1) * p) / 2 +
+        c(lat1 * p) * c(lat2 * p) *
+        (1 - c((lon2 - lon1) * p)) / 2;
+    return 12742 * Math.asin(Math.sqrt(a)); // 2 * R; R = 6371 km
+}
+
+function deg2rad(deg) {
+    return deg * (Math.PI / 180)
+}
+
+function writeOrderID(userId, cb) {
+    db.ref("orders").once("value", function (snapshot) {
+        var orderArray = Object.keys(snapshot.val());
+        do {
+            var orderId = "";
+            for (i = 0; i < 21; i++)
+                orderId = orderId + (Math.floor((Math.random() * 9) + 1)); //generates ID out of numbers 1-9, 10 digits
+            if (!orderArray.includes(orderId.toString())) //checks if ID is not taken
+                cb(orderId);
+        } while (orderArray.includes(orderId.toString()));
+    });
+}
+
+function clearCartFinalizeOrder(userId, orderId, cb) {
+    db.ref("users/" + userId).once("value", function (snapshot) {
+        var userData = snapshot.val();
+        var firstOrder = false;
+        if (!userData.orders) {
+            userData.orders = {};
+            firstOrder = true;
+        }
+        userData.orders[orderId] = {
+            "orderId": orderId,
+            "storeId": userData.storeId,
+            "userId": userId,
+            "paymentId": userData.paymentId,
+            "timestamp": Date.now(),
+            "cart": {},
+            "delivery": {
+                "status": "Processing",
+                "startLat": getZipLat(userData.storeId),
+                "startLong": getZipLong(userData.storeId),
+                "currentLat": getZipLat(userData.storeId),
+                "currentLong": getZipLong(userData.storeId),
+                "endLat": getUserLat(userData),
+                "endLong": getUserLong(userData),
+                "latIncrement": getLatIncrement(getZipLat(userData.storeId), getZipLong(userData.storeId), getUserLat(userData), getUserLong(userData)),
+                "longIncrement": getLongIncrement(getZipLat(userData.storeId), getZipLong(userData.storeId), getUserLat(userData), getUserLong(userData)),
+                "steps": getDistanceFromLatLonInKm(getZipLat(userData.storeId), getZipLong(userData.storeId), getUserLat(userData), getUserLong(userData)) * 2
+            }
+        };
+        userData.orders[orderId].cart[userData.storeId] = {};
+        for (var food in userData.cart[userData.storeId])
+            if (userData.cart[userData.storeId][food] > 0) {
+                userData.orders[orderId].cart[userData.storeId][food] = userData.cart[userData.storeId][food];
+                updateStock("stores/" + userData.storeId + "/stock/" + food, userData.cart[userData.storeId][food]);
+                userData.cart[userData.storeId][food] = "0";
+            }
+        if (Object.keys(userData.orders[orderId].cart[userData.storeId]).length === 0 && userData.orders[orderId].cart[userData.storeId].constructor === Object)
+            cb(null);
+        else {
+            if (firstOrder)
+                userData.orderId = orderId;
+            db.ref("users/" + userId).update(userData).then(function () {
+                cb(orderId);
             });
         }
-    }, function (errorObject) {
-        console.log("Failed to withdraw: " + errorObject.code);
     });
 }
 
-function setUpRefresh(){
-    var ref = db.ref("stores");
-    ref.once("value", function(snapshot) {
-        var storeData = snapshot.val();
-        for(var store in storeData)
-            for(var food in storeData[store].stock)
-                refreshStock(("stores/"+store+"/stock/"+food), 100);
-    });
-}
-
-setUpRefresh();
-
-function checkout(userID){
-    orderID = writeOrderID(userID);
-    emptyCart(userID, orderID);
-    finalizeOrder(userID, orderID);
-    return orderID;
-}
-
-
-function writeOrderID(userID){
-//    console.log("entered")
-    var ordersRef = db.ref("orders");
-    var orderID = 0;
-    var notIDTaken = true;
-    var orderArray = Object.keys(ordersRef)
-
-    while(notIDTaken){
-        for(i =0; i < 10; i++){
-            orderID = orderID + (Math.floor((Math.random() * 10) + 1))*Math.pow(10, i); //generates ID out of numbers 1-10, 1o digits
+function doDelivery(userId, orderId) {
+    db.ref("users/" + userId + "/orders/" + orderId + "/delivery").once("value", function (snapshot) {
+        var deliveryData = snapshot.val();
+        deliveryData.status = "Shipping";
+        deliveryData.currentLat = getNextLat(deliveryData.currentLat, deliveryData.latIncrement);
+        deliveryData.currentLong = getNextLong(deliveryData.currentLong, deliveryData.longIncrement);
+        deliveryData.steps -= 1;
+        if (deliveryData.steps < 1) {
+            deliveryData.currentLat = deliveryData.endLat + 0.002;
+            deliveryData.currentLong = deliveryData.endLong - 0.002;
+            deliveryData.status = "Delivered";
         }
-        // console.log("OrderID is " + orderID);
-        if(!orderArray.includes(orderID.toString())){ //checks if ID is taken
-            orderString = orderID.toString()
-
-            ordersRef.child(orderString).set(userID);
-            notIDTaken = false;
-        }
-        else{
-            orderID = 0;
-        }
-    }
-
-    return orderString;
-}
-
-function emptyCart(userID, nOrderID){
-    var userRef = db.ref("users/" + userID);
-    userRef.child("orders").child(orderID).set({orderID: nOrderID});
-
-    var orderRef = db.ref("users/" + userID + "/orders/"+ nOrderID);
-
-    var storeID;
-    userRef.child("storeId").once("value", function(snapshot) {
-        console.log(snapshot.val());
-        storeID = snapshot.val();
-        console.log("Store ID " + storeID)
-
-        var totalCost = 0;
-        var cartRef = db.ref("users/" + userID +"/cart/" + storeID);
-
-        cartRef.orderByValue().on("value", function(snapshot) {
-            snapshot.forEach(function(data){
-//               console.log("entered for each");
-//                console.log("Value of " + data.key + " is " + data.val());
-                if(data.val() != 0){
-                    console.log("Entered if statement");
-                    path = "stores/" + storeID + "/stock/" + data.key;
-                    var productRef = db.ref(path);
-
-                    var price = 0;
-                    productRef.child("price").once("value", function(snapshot) {
-                        price = parseFloat(snapshot.val());
-                    });
-                    totalCost = totalCost + price*data.val();
-
-                    updateStock(path, data.val());
-                    orderRef.child("cart").child(data.key).set(data.val())
-                    cartRef.child(data.key).set(0);
-                }
-            });
-
-        });
-
-        totalCost = "$" + totalCost.toString();
-        orderRef.child("orderTotal").set(totalCost);
+        db.ref("users/" + userId + "/orders/" + orderId + "/delivery").update(deliveryData).then(setTimeout(function () {
+            if (deliveryData.status != "Delivered")
+                doDelivery(userId, orderId);
+        }, 1500));
     });
-//    console.log("storeID " + storeID);
-
-
-
 }
 
-function finalizeOrder(userID, OrderID){
-    var userRef = db.ref("users/" + userID);
-    var orderRef = db.ref("users/" + userID + "/orders/"+ OrderID);
-
-    orderRef.child("status").set("processing");
-    orderRef.child("timestamp").set(Date.now());
-
-    var storeID = 0;
-    userRef.child("storeID").once("value", function(snapshot) {
-        storeID = snapshot.val();
-    });
-
-
-
- //   orderRef.child("")
-
-}
-
-//writeOrderID("testID");
-
-
-//checkout("qWWZEkhFeDclEwG1yFNCSaF0UNG3");
-//var path = "stores/storeId/stock/dairy/butter";
-
-//updateStock(path, 10);
-
-//refreshStock(path, 100);
-
-//setInterval(function(){updateStock(path, 10);}, 1000);
-
-function zipToCords(code){
-    return {"lat": zips[code].LAT, "lng":zips[code].LNG};
-}
-
-function Deg2Rad(deg) {
-  return deg * Math.PI / 180;
-}
-
-function distance(lat1, lon1, lat2, lon2) {
-    lat1 = Deg2Rad(lat1);
-    lat2 = Deg2Rad(lat2);
-    lon1 = Deg2Rad(lon1);
-    lon2 = Deg2Rad(lon2);
-    var R = 6371; // km
-    var x = (lon2 - lon1) * Math.cos((lat1 + lat2) / 2);
-    var y = (lat2 - lat1);
-    var d = Math.sqrt(x * x + y * y) * R;
-    return d;
-}
-
-function closestStore(zip) {
-    var store = 0;
-    var mindistance = 0;
-    var ref = db.ref("stores");
-    distances = [];
-    var count = 0;
-    for(var x in ref){
-
-    }
-}
+//9432942389433949: "oYn79tnDmzOQbQAmNPpNEEbG1CC2"
