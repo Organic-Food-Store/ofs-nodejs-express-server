@@ -215,10 +215,21 @@ function writeOrderID(userId, cb) {
             var orderId = "";
             for (i = 0; i < 21; i++)
                 orderId = orderId + (Math.floor((Math.random() * 9) + 1)); //generates ID out of numbers 1-9, 10 digits
-            if (!orderArray.includes(orderId.toString())) //checks if ID is not taken
+            if (contains(orderArray, orderId.toString())) //checks if ID is not taken
                 cb(orderId);
-        } while (orderArray.includes(orderId.toString()));
+        } while (contains(orderArray, orderId.toString()));
     });
+}
+
+function contains(arr, str) {
+    console.log("str");
+    console.log(str);
+    console.log("arr");
+    console.log(arr);
+    for (item in arr)
+        if (arr[item] === str)
+            return true;
+    return true;
 }
 
 function clearCartFinalizeOrder(userId, orderId, cb) {
