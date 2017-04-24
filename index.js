@@ -178,11 +178,18 @@ function getUserLong(udata) {
 }
 
 function getLatIncrement(lat1, lon1, lat2, lon2) {
-    return 0.001;
+    var incre = 4.5000045000045e-6;
+    var angle = getAngleFromLatLon(lat1, lat2, lon1, lon2);
+    var xdistance = incre*Math.cos(angle);
+    return xdistance;
 }
 
 function getLongIncrement(lat1, lon1, lat2, lon2) {
-    return 0.001;
+    var incre = 4.5000045000045e-6;
+    var angle = getAngleFromLatLon(lat1, lat2, lon1, lon2);
+    var ydistance = incre*Math.sin(angle);
+    return ydistance;
+    //return 0.001;
 }
 
 function getNextLat(latStart, latEnd) {
@@ -203,7 +210,7 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
 }
 
 function deg2rad(deg) {
-    return deg * (Math.PI / 180);
+    return deg * Math.PI / 180;
 }
 
 function rad2deg(rad) {
@@ -211,11 +218,36 @@ function rad2deg(rad) {
 }
 
 function getAngleFromLatLon(lat1, lat2, lng1, lng2) {
-    dLon = lng2 - lng1;
-    y = Math.sin(dLon) * Math.cos(lat2);
-    x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
-    return 360 - ((rad2deg(Math.atan2(y, x)) + 360) % 360);
+//
+
+    var phi1 = deg2rad(lat1);
+    var phi2 =  deg2rad(lat2)
+    var deltaphi =  deg2rad(lat2-lat1);
+    var deltalambda = deg2rad(lng2-lng1);
+    
+
+
+    var a = Math.sin(deltaphi/2) * Math.sin(deltaphi/2) + Math.cos(phi1) * Math.cos(phi2) *Math.sin(deltalambda/2) * Math.sin(deltalambda/2);
+
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    return c;
+    /*
+    var dLon = lng2 - lng1;
+    var y = Math.sin(dLon) * Math.cos(lat2);
+    var x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+    return Math.atan2(y, x);
+//    return 360 - ((rad2deg(Math.atan2(y, x)) + 360) % 360);
+*/
 }
+
+/*
+console.log(rad2deg(getAngleFromLatLon(0, 0, 0, 90)));
+console.log(rad2deg(getAngleFromLatLon(34, 45, -127, -125)));
+console.log(getAngleFromLatLon(0, 90, 0, 0));
+console.log(rad2deg(getAngleFromLatLon(getZipLat(95125), getZipLat(95111), getZipLong(95125), getZipLong(95111))));
+console.log(rad2deg(getAngleFromLatLon(getZipLat(95111), getZipLat(95125), getZipLong(95111), getZipLong(95125))));
+*/
 
 function writeOrderID(userId, cb) {
     db.ref("orders").once("value", function (snapshot) {
