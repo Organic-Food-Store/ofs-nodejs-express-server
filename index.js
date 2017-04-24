@@ -166,11 +166,15 @@ function updateStock(path, deduction) { // function to update the stock for prod
 }
 
 function getZipLat(zip) {
-    return zips[zip].LAT;
+    if(zips[zip])
+        return zips[zip].LAT;
+    return null;
 }
 
 function getZipLong(zip) {
-    return zips[zip].LNG;
+    if(zips[zip])
+        return zips[zip].LNG;
+    return null;
 }
 
 function getUserLat(udata) {
