@@ -124,9 +124,7 @@ function checkout(res, userId) {
                 });
             else
                 db.ref("orders").child(rtnOrderId.toString()).set(userId).then(function () {
-                    setTimeout(function () {
-                        doDelivery(userId, rtnOrderId);
-                    }, 5000);
+                    doDelivery(userId, rtnOrderId);
                     res.send({
                         "trackingOrder": rtnOrderId
                     });
