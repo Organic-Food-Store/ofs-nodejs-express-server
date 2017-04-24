@@ -59,16 +59,10 @@ app.get('/api/:newVal', function (req, res) {
 
 app.get('/api/zipToCords/:zipcode', function (req, res) {
     setLastAPICall("zipToCords - " + req.params.zipcode);
-    if (zips[zip])
-        res.send({
-            "lat": getZipLat(req.params.zipcode),
-            "lng": getZipLong(req.params.zipcode)
-        });
-    else
-        res.send({
-            "lat": null,
-            "lng": null
-        });
+    res.send({
+        "lat": getZipLat(req.params.zipcode),
+        "lng": getZipLong(req.params.zipcode)
+    });
 });
 
 app.get('/api/userExists/:useruid', function (req, res) {
