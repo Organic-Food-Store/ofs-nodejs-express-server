@@ -130,7 +130,9 @@ function checkout(res, userId) {
                 });
             else
                 db.ref("orders").child(rtnOrderId.toString()).set(userId).then(function () {
-                    doDelivery(userId, rtnOrderId);
+                    setTimeout(function (userId, rtnOrderId) {
+                        doDelivery(userId, rtnOrderId);
+                    }, 5000);
                     res.send({
                         "trackingOrder": rtnOrderId
                     });
@@ -205,7 +207,18 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
 }
 
 function deg2rad(deg) {
-    return deg * (Math.PI / 180)
+    return deg * (Math.PI / 180);
+}
+
+function rad2deg(rad) {
+    return (rad / Math.PI) * 180;
+}
+
+function getAngleFromLatLon(lat1, lat2, lng1, lng2) {
+    dLon = lng2 - lng1;
+    y = Math.sin(dLon) * Math.cos(lat2);
+    x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+    return 360 - ((rad2deg(Math.atan2(y, x)) + 360) % 360);
 }
 
 function writeOrderID(userId, cb) {
@@ -277,8 +290,8 @@ function doDelivery(userId, orderId) {
         deliveryData.currentLong = getNextLong(deliveryData.currentLong, deliveryData.longIncrement);
         deliveryData.steps -= 1;
         if (deliveryData.steps < 1) {
-            deliveryData.currentLat = deliveryData.endLat + 0.002;
-            deliveryData.currentLong = deliveryData.endLong - 0.002;
+            deliveryData.currentLat = deliveryData.endLat + 0.0015;
+            deliveryData.currentLong = deliveryData.endLong - 0.0015;
             deliveryData.status = "Delivered";
         }
         db.ref("users/" + userId + "/orders/" + orderId + "/delivery").update(deliveryData).then(setTimeout(function () {
@@ -287,5 +300,3 @@ function doDelivery(userId, orderId) {
         }, 1500));
     });
 }
-
-//9432942389433949: "oYn79tnDmzOQbQAmNPpNEEbG1CC2"
