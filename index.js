@@ -178,19 +178,23 @@ function getUserLong(udata) {
 }
 
 function getLatIncrement(lat1, lon1, lat2, lon2) {
-    var incre = 4.5000045000045e-6;
+    var incre = 10*4.5000045000045e-6;
     var angle = getAngleFromLatLon(lat1, lat2, lon1, lon2);
     var xdistance = incre*Math.cos(angle);
+    console.log(xdistance);
     return xdistance;
 }
 
 function getLongIncrement(lat1, lon1, lat2, lon2) {
-    var incre = 4.5000045000045e-6;
+    var incre = 10*4.5000045000045e-6;
     var angle = getAngleFromLatLon(lat1, lat2, lon1, lon2);
     var ydistance = incre*Math.sin(angle);
+    console.log(ydistance);
     return ydistance;
     //return 0.001;
 }
+getLongIncrement(getZipLat(94401), getZipLong(94401), getZipLat(94555), getZipLong(94555));
+
 
 function getNextLat(latStart, latEnd) {
     return latStart + latEnd;
