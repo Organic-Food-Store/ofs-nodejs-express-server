@@ -222,10 +222,6 @@ function writeOrderID(userId, cb) {
 }
 
 function contains(arr, str) {
-    console.log("str");
-    console.log(str);
-    console.log("arr");
-    console.log(arr);
     for (item in arr)
         if (arr[item] === str)
             return true;
