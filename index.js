@@ -210,22 +210,16 @@ function deg2rad(deg) {
 
 function writeOrderID(userId, cb) {
     db.ref("orders").once("value", function (snapshot) {
-        var orderArray = Object.keys(snapshot.val());
+        // var orderArray = Object.keys(snapshot.val());
+        var orders = snapshot.val();
         do {
             var orderId = "";
             for (i = 0; i < 21; i++)
                 orderId = orderId + (Math.floor((Math.random() * 9) + 1)); //generates ID out of numbers 1-9, 10 digits
-            if (contains(orderArray, orderId.toString())) //checks if ID is not taken
+            if (!orders[orderId.toString()]) //checks if ID is not taken
                 cb(orderId);
-        } while (contains(orderArray, orderId.toString()));
+        } while (!!orders[orderId.toString()]);
     });
-}
-
-function contains(arr, str) {
-    for (item in arr)
-        if (arr[item] === str)
-            return true;
-    return true;
 }
 
 function clearCartFinalizeOrder(userId, orderId, cb) {
