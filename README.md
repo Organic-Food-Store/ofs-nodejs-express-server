@@ -38,7 +38,7 @@ Or use the same hosted server at [https://organic-food-store.herokuapp.com/api](
 - [http://localhost:5000/api](http://localhost:5000/api)
 - [https://organic-food-store.herokuapp.com/api](https://organic-food-store.herokuapp.com/api)
 
-### Zips to Co-ordinates - Latitude & Longitude Return
+### Zips to Co-ordinates - `latitude` & `longitude` Return
 
 ### `/api/zipToCords/:zipcode`
 
@@ -48,7 +48,7 @@ Ex: [/api/zipToCords/95111](http://localhost:5000/api/zipToCords/95111)
 
 Invalid zipcode inputs return `null`.
 
-### User Existing Check - True or False Return
+### User Existing Check - `true` or `false` Return
 
 ### `/api/userExists/:useruid`
 
@@ -58,7 +58,7 @@ Ex: [/api/userExists/oYn79tnDmzOQbQAmNPpNEEbG1CC2](http://localhost:5000/api/use
 
 Nonexisting User ID inputs return `false`.
 
-### Determine Closest Store to Zipcode - 95125 or 94401 Return
+### Determine Closest Store to Zipcode - `95125` or `94401` Return
 
 ### `/api/closestStore/:zipcode`
 
@@ -68,7 +68,7 @@ Ex: [/api/closestStore/95111](http://localhost:5000/api/closestStore/95111)
 
 Invalid zipcode inputs returns the store ID of the San Jose Willow Glen Branch.
 
-### Execute Checkout of User - Tracking ID Return 
+### Execute Checkout of User - `trackingId` Return 
 
 ### `/api/checkout/:useruid`
 
