@@ -287,7 +287,7 @@ function clearCartFinalizeOrder(userId, orderId, cb) {
                 "endLong": getUserLong(userData),
                 "latIncrement": getLatIncrement(getZipLat(userData.storeId), getZipLong(userData.storeId), getUserLat(userData), getUserLong(userData)),
                 "longIncrement": getLongIncrement(getZipLat(userData.storeId), getZipLong(userData.storeId), getUserLat(userData), getUserLong(userData)),
-                "steps": getDistanceFromLatLonInKm(getZipLat(userData.storeId), getZipLong(userData.storeId), getUserLat(userData), getUserLong(userData)) * 3.1
+                "steps": getDistanceFromLatLonInKm(getZipLat(userData.storeId), getZipLong(userData.storeId), getUserLat(userData), getUserLong(userData)) * 2.5
             }
         };
         userData.orders[orderId].cart[userData.storeId] = {};
