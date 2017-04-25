@@ -178,7 +178,7 @@ function getUserLong(udata) {
 }
 
 function getLatIncrement(lat1, lon1, lat2, lon2) {
-    var incre = 1000*4.5000045000045e-6;
+    var incre = 1250*4.5000045000045e-6;
     var angle = getAngleFromLatLon(lat1, lat2, lon1, lon2);
     var xdistance = incre*Math.cos(angle);
     //console.log(xdistance);
@@ -186,7 +186,7 @@ function getLatIncrement(lat1, lon1, lat2, lon2) {
 }
 
 function getLongIncrement(lat1, lon1, lat2, lon2) {
-    var incre = 1000*4.5000045000045e-6;
+    var incre = 1250*4.5000045000045e-6;
     var angle = getAngleFromLatLon(lat1, lat2, lon1, lon2);
     //console.log(rad2deg(angle));
     //console.log(Math.sin(angle));
