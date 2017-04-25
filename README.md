@@ -40,9 +40,9 @@ Or use the same hosted server at [https://organic-food-store.herokuapp.com/api](
 
 ### Paths
 
-#### Zips to Co-ordinates (Latitude & Longitude)
+#### Zips to Co-ordinates - Latitude & Longitude Return
 
-- `/api/zipToCords/:zipcode`
+##### `/api/zipToCords/:zipcode`
 
 Simply replace `:zipcode` with any zipcode to get the latitude and longitude of the zipcode, if valid.
 
@@ -50,9 +50,9 @@ Ex: [/api/zipToCords/95111](http://localhost:5000/api/zipToCords/95111)
 
 Invalid zipcode inputs return `null`.
 
-#### User Existing Check
+#### User Existing Check - True or False Return
 
-- `/api/userExists/:useruid`
+##### `/api/userExists/:useruid`
 
 Simply replace `:useruid` with any User ID, obtainable at the [App Dashboard](https://organic-food-store.firebaseapp.com/dashboard) to see if the user exists.
 
@@ -60,9 +60,9 @@ Ex: [/api/userExists/oYn79tnDmzOQbQAmNPpNEEbG1CC2](http://localhost:5000/api/use
 
 Nonexisting User ID inputs return `false`.
 
-#### Determine Closest Store to Zipcode
+#### Determine Closest Store to Zipcode - 95125 or 94401 Return
 
-- `/api/closestStore/:zipcode`
+##### `/api/closestStore/:zipcode`
 
 Simply replace `:zipcode` with any zipcode to get the store ID of the closest store to the input zipcode.
 
@@ -70,9 +70,9 @@ Ex: [/api/closestStore/95111](http://localhost:5000/api/closestStore/95111)
 
 Invalid zipcode inputs returns the store ID of the San Jose Willow Glen Branch.
 
-#### Execute Checkout of User
+#### Execute Checkout of User - Tracking ID Return 
 
-- `/api/checkout/:useruid`
+##### `/api/checkout/:useruid`
 
 Simply replace `:useruid` with any User ID, obtainable at the [App Dashboard](https://organic-food-store.firebaseapp.com/dashboard) to  perform the checkout method if the user with ID `:userid` has items in the cart.
 
