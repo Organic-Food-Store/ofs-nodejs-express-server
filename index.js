@@ -178,24 +178,24 @@ function getUserLong(udata) {
 }
 
 function getLatIncrement(lat1, lon1, lat2, lon2) {
-    var incre = 1000*4.5000045000045e-6;
+    var incre = 500*4.5000045000045e-6;
     var angle = getAngleFromLatLon(lat1, lat2, lon1, lon2);
     var xdistance = incre*Math.sin(angle);
-    console.log(xdistance);
+    //console.log(xdistance);
     return xdistance;
 }
 
 function getLongIncrement(lat1, lon1, lat2, lon2) {
-    var incre = 1000*4.5000045000045e-6;
+    var incre = 500*4.5000045000045e-6;
     var angle = getAngleFromLatLon(lat1, lat2, lon1, lon2);
-    console.log(rad2deg(angle));
-    console.log(Math.sin(angle));
+    //console.log(rad2deg(angle));
+    //console.log(Math.sin(angle));
     var ydistance = incre*Math.cos(angle);
-    console.log(ydistance);
+ //   console.log(ydistance);
     return ydistance;
     //return 0.001;
 }
-getLongIncrement(getZipLat(94401), getZipLong(94401), getZipLat(94555), getZipLong(94555));
+//getLongIncrement(getZipLat(94401), getZipLong(94401), getZipLat(94555), getZipLong(94555));
 
 
 function getNextLat(latStart, latEnd) {
@@ -237,7 +237,7 @@ function getAngleFromLatLon(lat1, lat2,lng1, lng2) {
 
 }
 
-
+/*
 console.log(rad2deg(getAngleFromLatLon(0, 0, 0, 90))); // should be 90
 console.log(rad2deg(getAngleFromLatLon(10, 30, 0 , 0))); //should be 0
 console.log(rad2deg(getAngleFromLatLon(10, 30, 0, 90))); //should be 60
@@ -245,7 +245,7 @@ console.log(rad2deg(getAngleFromLatLon(34, 35, -127, -125)));
 console.log(getAngleFromLatLon(0, 90, 0, 0));
 console.log(rad2deg(getAngleFromLatLon(getZipLat(95125), getZipLat(95111), getZipLong(95125), getZipLong(95111))));
 console.log(rad2deg(getAngleFromLatLon(getZipLat(95111), getZipLat(95125), getZipLong(95111), getZipLong(95125))));
-
+*/
 
 
 function writeOrderID(userId, cb) {
