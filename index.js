@@ -178,7 +178,7 @@ function getUserLong(udata) {
 }
 
 function getLatIncrement(lat1, lon1, lat2, lon2) {
-    var incre = 1000*4.5000045000045e-6;
+    var incre = 100*4.5000045000045e-6;
     var angle = getAngleFromLatLon(lat1, lat2, lon1, lon2);
     var xdistance = incre*Math.cos(angle);
     console.log(xdistance);
@@ -186,14 +186,16 @@ function getLatIncrement(lat1, lon1, lat2, lon2) {
 }
 
 function getLongIncrement(lat1, lon1, lat2, lon2) {
-    var incre = 1000*4.5000045000045e-6;
+    var incre = 100*4.5000045000045e-6;
     var angle = getAngleFromLatLon(lat1, lat2, lon1, lon2);
+    console.log(rad2deg(angle));
+    console.log(Math.sin(angle));
     var ydistance = incre*Math.sin(angle);
     console.log(ydistance);
     return ydistance;
     //return 0.001;
 }
-getLongIncrement(getZipLat(94401), getZipLong(94401), getZipLat(94555), getZipLong(94555));
+//getLongIncrement(getZipLat(94401), getZipLong(94401), getZipLat(94555), getZipLong(94555));
 
 
 function getNextLat(latStart, latEnd) {
@@ -221,9 +223,12 @@ function rad2deg(rad) {
     return (rad / Math.PI) * 180;
 }
 
-function getAngleFromLatLon(lat1, lat2, lng1, lng2) {
+
+function getAngleFromLatLon(lat1, lng1, lat2, lng2) {
 //
 
+
+/*
     var phi1 = deg2rad(lat1);
     var phi2 =  deg2rad(lat2)
     var deltaphi =  deg2rad(lat2-lat1);
@@ -235,23 +240,35 @@ function getAngleFromLatLon(lat1, lat2, lng1, lng2) {
 
     var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
+var φ1 = deg2rad(lat1);
+var φ2 = deg2rad(lat2);
+var Δφ = deg2rad(lat2-lat1);
+var Δλ = deg2rad(lng2-lng1);
+
+var a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+        Math.cos(φ1) * Math.cos(φ2) *
+        Math.sin(Δλ/2) * Math.sin(Δλ/2);
+var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return c;
-    /*
+    */
+    
     var dLon = lng2 - lng1;
-    var y = Math.sin(dLon) * Math.cos(lat2);
-    var x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+    var y = Math.sin(deg2rad(dLon)) * Math.cos(deg2rad(lat2));
+    var x = Math.cos(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) - Math.sin(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(dLon));
     return Math.atan2(y, x);
 //    return 360 - ((rad2deg(Math.atan2(y, x)) + 360) % 360);
-*/
+
 }
 
-/*
-console.log(rad2deg(getAngleFromLatLon(0, 0, 0, 90)));
+
+console.log(rad2deg(getAngleFromLatLon(0, 0, 0, 90))); // should be 90
+console.log(rad2deg(getAngleFromLatLon(10, 0, 30, 0))); //should be 0
+console.log(rad2deg(getAngleFromLatLon(10, 0, 30, 90))); //should be 60
 console.log(rad2deg(getAngleFromLatLon(34, 45, -127, -125)));
 console.log(getAngleFromLatLon(0, 90, 0, 0));
 console.log(rad2deg(getAngleFromLatLon(getZipLat(95125), getZipLat(95111), getZipLong(95125), getZipLong(95111))));
 console.log(rad2deg(getAngleFromLatLon(getZipLat(95111), getZipLat(95125), getZipLong(95111), getZipLong(95125))));
-*/
+
 
 function writeOrderID(userId, cb) {
     db.ref("orders").once("value", function (snapshot) {
