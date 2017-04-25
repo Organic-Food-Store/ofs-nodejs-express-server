@@ -1,9 +1,21 @@
+// ===================== GLOBALS SETUP ===========================
+
+var p = 0.017453292519943295;
+var s = Math.sin;
+var c = Math.cos;
+var l = l;
+var deliveryStepSpeed = 1500;
+var distanceFromEnd = 0.0015;
+var stepsMult = 2.5;
+var incrementMult = 790;
+var zips = require('./public/zips.json');
+
 // ======================= APP SETUP =============================
+
 var express = require('express');
 var admin = require("firebase-admin");
-var app = express();
 var cors = require('cors');
-var zips = require('./public/zips.json');
+var app = express();
 
 app.use(cors());
 
@@ -15,7 +27,7 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 app.listen(app.get('port'), function () {
-    console.log('Node app is running on port', app.get('port'));
+    l('Node app is running on port', app.get('port'));
 });
 
 app.get('/', function (req, res) {
@@ -24,10 +36,7 @@ app.get('/', function (req, res) {
 
 // ===================== FIREBASE SETUP ==========================
 
-//var serviceAccount = require("path/to/serviceAccountKey.json");
-
 admin.initializeApp({
-    //credential: admin.credential.cert(serviceAccount),
     credential: admin.credential.cert({
         "type": "service_account",
         "project_id": "organic-food-store",
@@ -52,17 +61,15 @@ app.get('/api', function (req, res) {
 });
 
 app.get('/api/:newVal', function (req, res) {
-    setLastAPICall(req.params.newVal, function () {
-        getLastAPICall(res)
-    });
+    setLastAPICall(req.params.newVal, function () { getLastAPICall(res); });
 });
 
 app.get('/api/zipToCords/:zipcode', function (req, res) {
     setLastAPICall("zipToCords - " + req.params.zipcode);
-    res.send({
-        "lat": getZipLat(req.params.zipcode),
-        "lng": getZipLong(req.params.zipcode)
-    });
+    if (zips[req.params.zipcode])
+        res.send({ "lat": getZipLat(req.params.zipcode), "lng": getZipLong(req.params.zipcode) });
+    else
+        res.send({ "data": null });
 });
 
 app.get('/api/userExists/:useruid', function (req, res) {
@@ -83,59 +90,40 @@ app.get('/api/checkout/:useruid', function (req, res) {
 // ========================== CALL FUNCTIONS ==========================
 
 function setLastAPICall(call, cb) {
-    console.log("Last API Call: " + call);
+    l("Last API Call: " + call);
     db.ref("data").set(call, cb);
 }
 
 function getLastAPICall(res) {
-    db.ref("data").once("value", function (snapshot) {
-        res.send({
-            "Last API Call": snapshot.val()
-        });
-    });
+    db.ref("data").once("value", function (snapshot) { res.send({"Last API Call": snapshot.val()}); });
 }
 
 function checkUserExists(res, id) {
-    db.ref("users").child(id).once('value', function (snapshot) {
-        res.send({
-            "exists": snapshot.val() !== null
-        });
-    });
+    db.ref("users").child(id).once('value', function (snapshot) { res.send({ "exists": snapshot.val() !== null }); });
 }
 
 function closestStore(res, zipcode) {
     db.ref("stores").once('value', function (snapshot) {
         var storeZips = Object.keys(snapshot.val());
         var storeDistances = storeZips.slice();
-        for (zip in storeDistances)
-            storeDistances[zip] = getDistanceFromLatLonInKm(getZipLat(zipcode), getZipLong(zipcode), getZipLat(storeDistances[zip]), getZipLong(storeDistances[zip]));
-        res.send({
-            "storeId": storeZips[storeDistances.reduce((iMin, x, i, arr) => x < arr[iMin] ? i : iMin, 0)]
-        });
+        for (zip in storeDistances) storeDistances[zip] = getDistanceFromLatLonInKm(getZipLat(zipcode), getZipLong(zipcode), getZipLat(storeDistances[zip]), getZipLong(storeDistances[zip]));
+        res.send({ "storeId": storeZips[storeDistances.reduce((iMin, x, i, arr) => x < arr[iMin] ? i : iMin, 0)] });
     });
 }
 
 function checkout(res, userId) {
-    writeOrderID(userId, function (orderId) {
-        clearCartFinalizeOrder(userId, orderId, function (rtnOrderId) {
-            if (!rtnOrderId)
-                res.send({
-                    "trackingOrder": null
-                });
-            else
-                db.ref("orders").child(rtnOrderId.toString()).set(userId).then(function () {
-                    doDelivery(userId, rtnOrderId);
-                    res.send({
-                        "trackingOrder": rtnOrderId
-                    });
-                });
-        });
-    });
+    writeOrderID(userId, function (orderId) { clearCartFinalizeOrder(userId, orderId, function (rtnOrderId) {
+        if (!rtnOrderId)
+            res.send({ "trackingOrder": null });
+        else
+            db.ref("orders").child(rtnOrderId.toString()).set(userId).then(function () {
+                doDelivery(userId, rtnOrderId);
+                res.send({ "trackingOrder": rtnOrderId });
+            });
+    }); });
 }
 
-// ======================== PASSIVE FUNCTIONS =========================
-
-setUpRefresh(50);
+// =============== PASSIVE STOCK MANIPULATION FUNCTIONS ===============
 
 function setUpRefresh(defaultVal) {
     db.ref("stores").once("value", function (snapshot) {
@@ -146,26 +134,28 @@ function setUpRefresh(defaultVal) {
 }
 
 function refreshStock(path, defaultVal) {
-    db.ref(path + "/quantity").on("value", function (snapshot) {
-        if (snapshot.val() < 1) updateStock(path, -defaultVal);
-    });
+    db.ref(path + "/quantity").on("value", function (snapshot) { if (snapshot.val() < 1) updateStock(path, -defaultVal); });
 }
 
-function updateStock(path, deduction) { // function to update the stock for product
-    db.ref(path + "/quantity").transaction(function (quanta) {
-        return quanta - deduction;
-    });
+function updateStock(path, deduction) {
+    db.ref(path + "/quantity").transaction(function (quanta) { return quanta - deduction; });
 }
+
+setUpRefresh(50);
+
+// ============= PASSIVE LOCATION MANIPULATION FUNCTIONS ==============
+
+function generateRandomNumber(min, max) {
+    return Math.random() * (max - min) + min;
+};
 
 function getZipLat(zip) {
-    if(zips[zip])
-        return zips[zip].LAT;
+    if(zips[zip]) return zips[zip].LAT;
     return null;
 }
 
 function getZipLong(zip) {
-    if(zips[zip])
-        return zips[zip].LNG;
+    if(zips[zip]) return zips[zip].LNG;
     return null;
 }
 
@@ -178,86 +168,28 @@ function getUserLong(udata) {
 }
 
 function getLatIncrement(lat1, lon1, lat2, lon2) {
-    var incre = 790*4.5000045000045e-6;
-    var angle = getAngleFromLatLon(lat1, lat2, lon1, lon2);
-    var xdistance = incre*Math.cos(angle);
-    //console.log(xdistance);
-    return xdistance;
-}
-
-function getLongIncrement(lat1, lon1, lat2, lon2) {
-    var incre = 790*4.5000045000045e-6;
-    var angle = getAngleFromLatLon(lat1, lat2, lon1, lon2);
-    //console.log(rad2deg(angle));
-    //console.log(Math.sin(angle));
-    var ydistance = incre*Math.sin(angle);
- //   console.log(ydistance);
-    return ydistance;
-    //return 0.001;
-}
-//getLongIncrement(getZipLat(94401), getZipLong(94401), getZipLat(94555), getZipLong(94555));
-
-
-function getNextLat(latStart, latEnd) {
-    return latStart + latEnd;
-}
-
-function getNextLong(longStart, longEnd) {
-    return longStart + longEnd;
+    return incrementMult*4.5000045000045e-6*Math.cos(getAngleFromLatLon(lat1, lat2, lon1, lon2));
 }
 
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-    var p = 0.017453292519943295; // Math.PI / 180
-    var c = Math.cos;
-    var a = 0.5 - c((lat2 - lat1) * p) / 2 +
-        c(lat1 * p) * c(lat2 * p) *
-        (1 - c((lon2 - lon1) * p)) / 2;
-    return 12742 * Math.asin(Math.sqrt(a)); // 2 * R; R = 6371 km
+    return 12742 * Math.asin(Math.sqrt(0.5 - c((lat2 - lat1) * p) / 2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2));
 }
 
-function deg2rad(deg) {
-    return deg * Math.PI / 180;
+function getAngleFromLatLon(lat1, lat2, lng1, lng2) {
+    return Math.atan2((s((lng2 - lng1) * p) * c(lat2 * p)), (c(lat1 * p) * s(lat2 * p) - s(lat1 * p) * c(lat2 * p) * c((lng2 - lng1) * p)));
 }
 
-function rad2deg(rad) {
-    return (rad / Math.PI) * 180;
+function getLongIncrement(lat1, lon1, lat2, lon2) {
+    return incrementMult*4.5000045000045e-6*Math.sin(getAngleFromLatLon(lat1, lat2, lon1, lon2));
 }
-
-
-function getAngleFromLatLon(lat1, lat2,lng1, lng2) {
-//
-
-
-
-    var dLon = lng2 - lng1;
-    var y = Math.sin(deg2rad(dLon)) * Math.cos(deg2rad(lat2));
-    var x = Math.cos(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) - Math.sin(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(dLon));
-    return Math.atan2(y, x);
-
-
-}
-
-/*
-console.log(rad2deg(getAngleFromLatLon(0, 0, 0, 90))); // should be 90
-console.log(rad2deg(getAngleFromLatLon(10, 30, 0 , 0))); //should be 0
-console.log(rad2deg(getAngleFromLatLon(10, 30, 0, 90))); //should be 60
-console.log(rad2deg(getAngleFromLatLon(34, 35, -127, -125)));
-console.log(getAngleFromLatLon(0, 90, 0, 0));
-console.log(rad2deg(getAngleFromLatLon(getZipLat(95125), getZipLat(95111), getZipLong(95125), getZipLong(95111))));
-console.log(rad2deg(getAngleFromLatLon(getZipLat(95111), getZipLat(95125), getZipLong(95111), getZipLong(95125))));
-*/
-
 
 function writeOrderID(userId, cb) {
     db.ref("orders").once("value", function (snapshot) {
-        // var orderArray = Object.keys(snapshot.val());
         var orders = snapshot.val();
         do {
             var orderId = "";
-            for (i = 0; i < 21; i++)
-                orderId = orderId + (Math.floor((Math.random() * 9) + 1)); //generates ID out of numbers 1-9, 10 digits
-            if (!orders[orderId.toString()]) //checks if ID is not taken
-                cb(orderId);
+            for (i = 0; i < 21; i++) orderId = orderId + (Math.floor((Math.random() * 9) + 1));
+            if (!orders[orderId.toString()]) cb(orderId);
         } while (!!orders[orderId.toString()]);
     });
 }
@@ -285,9 +217,7 @@ function clearCartFinalizeOrder(userId, orderId, cb) {
                 "currentLong": getZipLong(userData.storeId),
                 "endLat": getUserLat(userData),
                 "endLong": getUserLong(userData),
-                "latIncrement": getLatIncrement(getZipLat(userData.storeId), getZipLong(userData.storeId), getUserLat(userData), getUserLong(userData)),
-                "longIncrement": getLongIncrement(getZipLat(userData.storeId), getZipLong(userData.storeId), getUserLat(userData), getUserLong(userData)),
-                "steps": getDistanceFromLatLonInKm(getZipLat(userData.storeId), getZipLong(userData.storeId), getUserLat(userData), getUserLong(userData)) * 2.5
+                "steps": getDistanceFromLatLonInKm(getZipLat(userData.storeId), getZipLong(userData.storeId), getUserLat(userData), getUserLong(userData)) * stepsMult
             }
         };
         userData.orders[orderId].cart[userData.storeId] = {};
@@ -297,14 +227,10 @@ function clearCartFinalizeOrder(userId, orderId, cb) {
                 updateStock("stores/" + userData.storeId + "/stock/" + food, userData.cart[userData.storeId][food]);
                 userData.cart[userData.storeId][food] = "0";
             }
-        if (Object.keys(userData.orders[orderId].cart[userData.storeId]).length === 0 && userData.orders[orderId].cart[userData.storeId].constructor === Object)
-            cb(null);
+        if (Object.keys(userData.orders[orderId].cart[userData.storeId]).length === 0 && userData.orders[orderId].cart[userData.storeId].constructor === Object) cb(null);
         else {
-            if (firstOrder)
-                userData.orderId = orderId;
-            db.ref("users/" + userId).update(userData).then(function () {
-                cb(orderId);
-            });
+            if (firstOrder) userData.orderId = orderId;
+            db.ref("users/" + userId).update(userData).then(function () { cb(orderId); });
         }
     });
 }
@@ -313,17 +239,14 @@ function doDelivery(userId, orderId) {
     db.ref("users/" + userId + "/orders/" + orderId + "/delivery").once("value", function (snapshot) {
         var deliveryData = snapshot.val();
         deliveryData.status = "Shipping";
-        deliveryData.currentLat = getNextLat(deliveryData.currentLat, deliveryData.latIncrement);
-        deliveryData.currentLong = getNextLong(deliveryData.currentLong, deliveryData.longIncrement);
+        deliveryData.currentLat = deliveryData.currentLat + getLatIncrement(deliveryData.currentLat, deliveryData.currentLong, deliveryData.endLat, deliveryData.endLong);
+        deliveryData.currentLong = deliveryData.currentLong + getLongIncrement(deliveryData.currentLat, deliveryData.currentLong, deliveryData.endLat, deliveryData.endLong);
         deliveryData.steps -= 1;
         if (deliveryData.steps < 1) {
-            deliveryData.currentLat = deliveryData.endLat + 0.0015;
-            deliveryData.currentLong = deliveryData.endLong - 0.0015;
+            deliveryData.currentLat = deliveryData.endLat + generateRandomNumber(-distanceFromEnd, distanceFromEnd);
+            deliveryData.currentLong = deliveryData.endLong + generateRandomNumber(-distanceFromEnd, distanceFromEnd);
             deliveryData.status = "Delivered";
         }
-        db.ref("users/" + userId + "/orders/" + orderId + "/delivery").update(deliveryData).then(setTimeout(function () {
-            if (deliveryData.status != "Delivered")
-                doDelivery(userId, orderId);
-        }, 1500));
+        db.ref("users/" + userId + "/orders/" + orderId + "/delivery").update(deliveryData).then(setTimeout(function () { if (deliveryData.status != "Delivered") doDelivery(userId, orderId); }, deliveryStepSpeed));
     });
 }
