@@ -78,6 +78,8 @@ Simply replace `:useruid` with any User ID, obtainable at the [App Dashboard](ht
 
 The tracking ID number of the order is then returned, which can be put into the [App Tracking](https://organic-food-store.firebaseapp.com/tracking) input to then track the movement of the order.
 
-You can track an id, i.e. `732331788976195636611` using a hashtag after the tracking URL: [https://organic-food-store.firebaseapp.com/tracking#732331788976195636611](https://organic-food-store.firebaseapp.com/tracking#732331788976195636611) 
+You can track an id, i.e. `732331788976195636611` using a hashtag after the tracking URL: [https://organic-food-store.firebaseapp.com/tracking#732331788976195636611](https://organic-food-store.firebaseapp.com/tracking#732331788976195636611)
 
 Ex: [/api/checkout/oYn79tnDmzOQbQAmNPpNEEbG1CC2](http://localhost:5000/api/checkout/oYn79tnDmzOQbQAmNPpNEEbG1CC2)
+
+Invalid user ID inputs or users with empty carts returns `null`.
