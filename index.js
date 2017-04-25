@@ -224,7 +224,7 @@ function rad2deg(rad) {
 }
 
 
-function getAngleFromLatLon(lat1, lng1, lat2, lng2) {
+function getAngleFromLatLon(lat1, lat2,lng1, lng2) {
 //
 
 
