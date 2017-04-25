@@ -1,30 +1,47 @@
-# ofs-nodejs-express-server
-The Independent Node JS Express Server hosted at Heroku
+# OFS - NodeJS - Express - Server
 
-A barebones Node.js app using [Express 4](http://expressjs.com/).
+## Setup
 
-This application supports the [Getting Started with Node on Heroku](https://devcenter.heroku.com/articles/getting-started-with-nodejs) article - check it out.
+The Independent Node JS Express Server hosted at [Heroku](https://organic-food-store.herokuapp.com/api)
+
+### Install Prerequisites
+
+1. Install [Git](https://git-scm.com/downloads).
+
+2. Install [Node.js](https://nodejs.org/en/download/current), preferably (7.x).
+
+3. Update npm.
+```sh
+    $ npm install npm@latest -g
+```
 
 ## Running Locally
 
-Make sure you have [Node.js](http://nodejs.org/) and the [Heroku Toolbelt](https://toolbelt.heroku.com/) installed.
+3. Clone the server, install the 
 
 ```sh
-$ git clone https://github.com/Organic-Food-Store/ofs-nodejs-express-server
-$ cd ofs-nodejs-express-server
-$ npm install
-$ npm start
+    $ git clone https://github.com/Organic-Food-Store/ofs-nodejs-express-server
+    $ cd ofs-nodejs-express-server
+    $ npm install
+    $ npm start
 ```
 
 Your app should now be running on [localhost:5000](http://localhost:5000/).
 
+***Note: Whether local or hosted, the app will only use the [organic-food-store.herokuapp.com/api](https://organic-food-store.herokuapp.com/api) for all serverside calls.***
 
-## Documentation
+## API Documentation
 
-For more information about using Node.js on Heroku, see these Dev Center articles:
+***All documentation will assuming either path:***
+- [http://localhost:5000/api](http://localhost:5000/api)
+- [https://organic-food-store.herokuapp.com/api](https://organic-food-store.herokuapp.com/api)
 
-- [Getting Started with Node.js on Heroku](https://devcenter.heroku.com/articles/getting-started-with-nodejs)
-- [Heroku Node.js Support](https://devcenter.heroku.com/articles/nodejs-support)
-- [Node.js on Heroku](https://devcenter.heroku.com/categories/nodejs)
-- [Best Practices for Node.js Development](https://devcenter.heroku.com/articles/node-best-practices)
-- [Using WebSockets on Heroku with Node.js](https://devcenter.heroku.com/articles/node-websockets)
+### Paths
+
+- /api/zipToCords/:zipcode
+
+- /api/userExists/:useruid
+
+- /api/closestStore/:zipcode
+
+- /api/checkout/:useruid
