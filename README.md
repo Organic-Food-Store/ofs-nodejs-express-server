@@ -38,7 +38,7 @@ Or use the same hosted server at [https://organic-food-store.herokuapp.com/api](
 
 ***Note: Whether local or hosted, the [app](https://github.com/Organic-Food-Store/ofs-client) will only use the [organic-food-store.herokuapp.com/api](https://organic-food-store.herokuapp.com/api) for all serverside calls.***
 
-## API Documentation - Paths
+## API Paths Documentation
 
 ***All documentation will assume either path:***
 - [http://localhost:5000/api](http://localhost:5000/api)
