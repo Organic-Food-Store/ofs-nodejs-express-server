@@ -160,11 +160,11 @@ function getZipLong(zip) {
 }
 
 function getUserLat(udata) {
-    return udata.addrlat ? udata.addrlat : udata.ziplat ? udata.ziplat : zips[udata.zipcode].LAT;
+    return udata.addrlat ? udata.addrlat : udata.ziplat ? udata.ziplat : zips[udata.zipcode] ? zips[udata.zipcode].LAT : zips[95014].LAT;
 }
 
 function getUserLong(udata) {
-    return udata.addrlng ? udata.addrlng : udata.ziplng ? udata.ziplng : zips[udata.zipcode].LNG;
+    return udata.addrlng ? udata.addrlng : udata.ziplng ? udata.ziplng : zips[udata.zipcode] ? zips[udata.zipcode].LNG : zips[95014].LNG;
 }
 
 function getLatIncrement(lat1, lon1, lat2, lon2) {
