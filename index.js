@@ -14,8 +14,8 @@ var zips = require('./public/zips.json');
 
 var express = require('express');
 var admin = require("firebase-admin");
-var cors = require('cors');
 var app = express();
+var cors = require('cors');
 
 app.use(cors());
 
@@ -66,10 +66,8 @@ app.get('/api/:newVal', function (req, res) {
 
 app.get('/api/zipToCords/:zipcode', function (req, res) {
     setLastAPICall("zipToCords - " + req.params.zipcode);
-    if (zips[req.params.zipcode])
-        res.send({ "lat": getZipLat(req.params.zipcode), "lng": getZipLong(req.params.zipcode) });
-    else
-        res.send({ "data": null });
+    if (zips[req.params.zipcode]) res.send({ "lat": getZipLat(req.params.zipcode), "lng": getZipLong(req.params.zipcode) });
+    else res.send({ "data": null });
 });
 
 app.get('/api/userExists/:useruid', function (req, res) {
@@ -106,20 +104,19 @@ function closestStore(res, zipcode) {
     db.ref("stores").once('value', function (snapshot) {
         var storeZips = Object.keys(snapshot.val());
         var storeDistances = storeZips.slice();
-        for (zip in storeDistances) storeDistances[zip] = getDistanceFromLatLonInKm(getZipLat(zipcode), getZipLong(zipcode), getZipLat(storeDistances[zip]), getZipLong(storeDistances[zip]));
+        for (zip in storeDistances)
+            storeDistances[zip] = getDistanceFromLatLonInKm(getZipLat(zipcode), getZipLong(zipcode), getZipLat(storeDistances[zip]), getZipLong(storeDistances[zip]));
         res.send({ "storeId": storeZips[storeDistances.reduce((iMin, x, i, arr) => x < arr[iMin] ? i : iMin, 0)] });
     });
 }
 
 function checkout(res, userId) {
     writeOrderID(userId, function (orderId) { clearCartFinalizeOrder(userId, orderId, function (rtnOrderId) {
-        if (!rtnOrderId)
-            res.send({ "trackingOrder": null });
-        else
-            db.ref("orders").child(rtnOrderId.toString()).set(userId).then(function () {
-                doDelivery(userId, rtnOrderId);
-                res.send({ "trackingOrder": rtnOrderId });
-            });
+        if (!rtnOrderId) res.send({ "trackingOrder": null });
+        else db.ref("orders").child(rtnOrderId.toString()).set(userId).then(function () {
+            doDelivery(userId, rtnOrderId);
+            res.send({ "trackingOrder": rtnOrderId });
+        });
     }); });
 }
 
@@ -167,16 +164,16 @@ function getUserLong(udata) {
     return udata.addrlng ? udata.addrlng : udata.ziplng ? udata.ziplng : zips[udata.zipcode] ? zips[udata.zipcode].LNG : zips[95014].LNG;
 }
 
-function getLatIncrement(lat1, lon1, lat2, lon2) {
-    return incrementMult*4.5000045000045e-6*Math.cos(getAngleFromLatLon(lat1, lat2, lon1, lon2));
-}
-
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
     return 12742 * Math.asin(Math.sqrt(0.5 - c((lat2 - lat1) * p) / 2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2));
 }
 
 function getAngleFromLatLon(lat1, lat2, lng1, lng2) {
     return Math.atan2((s((lng2 - lng1) * p) * c(lat2 * p)), (c(lat1 * p) * s(lat2 * p) - s(lat1 * p) * c(lat2 * p) * c((lng2 - lng1) * p)));
+}
+
+function getLatIncrement(lat1, lon1, lat2, lon2) {
+    return incrementMult*4.5000045000045e-6*Math.cos(getAngleFromLatLon(lat1, lat2, lon1, lon2));
 }
 
 function getLongIncrement(lat1, lon1, lat2, lon2) {
