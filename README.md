@@ -1,10 +1,14 @@
-# OFS - NodeJS - Express - Server
+<h1 align="center">OFS - NodeJS - Express - Server</h1>
 
-![OFS Logo](https://raw.githubusercontent.com/Organic-Food-Store/ofs-client/master/images/logo.png)
+<p align="center">
+  <a href="https://organic-food-store.firebaseapp.com" target="_blank">
+    <img src="https://raw.githubusercontent.com/Organic-Food-Store/ofs-client/master/images/logo.png" width="50%">
+  </a>
+</p>
+
+<p align="center">The Independent Node JS Express Server hosted on <a href="https://organic-food-store.herokuapp.com/api" target="_blank">Heroku</a>.</p>
 
 ## Setup
-
-The Independent Node JS Express Server hosted on [Heroku](https://organic-food-store.herokuapp.com/api)
 
 ### Install Prerequisites
 
