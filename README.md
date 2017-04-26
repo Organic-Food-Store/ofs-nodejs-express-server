@@ -1,5 +1,7 @@
 # OFS - NodeJS - Express - Server
 
+![OFS Logo](https://raw.githubusercontent.com/Organic-Food-Store/ofs-client/master/images/logo.png)
+
 ## Setup
 
 The Independent Node JS Express Server hosted on [Heroku](https://organic-food-store.herokuapp.com/api)
