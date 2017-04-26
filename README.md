@@ -13,7 +13,7 @@
 ### Install Prerequisites
 
 [![Verify Steps with Client & Server Setup Video](https://raw.githubusercontent.com/Organic-Food-Store/ofs-client/master/dev/Capture.PNG)](https://www.useloom.com/share/0130bb002fcf408a908689f09be91490 "Verify Steps with Client & Server Setup Video")
-##### Verify below step results with Client & Server Setup Video above
+##### Verify below step results with Client & Server Setup Video - We recommend playing the video at 1.25x speed.
 
 1. Install [Git](https://git-scm.com/downloads).
 
