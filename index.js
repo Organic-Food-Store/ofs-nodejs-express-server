@@ -6,7 +6,7 @@ var c = Math.cos;
 var l = console.log;
 var deliveryStepSpeed = 1500;
 var distanceFromEnd = 0.0015;
-var stepsMult = 3;
+var stepsMult = 3.08;
 var incrementMult = 790;
 var zips = require('./public/zips.json');
 
